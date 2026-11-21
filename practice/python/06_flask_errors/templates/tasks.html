@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Задачи — практика №6</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: #f7f9fb;
+            color: #1f2933;
+            max-width: 800px;
+            margin: 48px auto;
+            padding: 0 16px;
+        }
+        h1 { font-size: 26px; margin-bottom: 4px; }
+        .subtitle { color: #60707d; margin-top: 0; }
+        .error {
+            background: #fdecec;
+            border-left: 4px solid #d64545;
+            color: #8a2020;
+            padding: 12px 14px;
+            margin: 18px 0;
+            border-radius: 4px;
+            line-height: 1.45;
+        }
+        .note {
+            background: #eef6ff;
+            border-left: 4px solid #3c7dbb;
+            padding: 10px 14px;
+            border-radius: 4px;
+            color: #295a88;
+            margin: 12px 0;
+        }
+        form.add { display: flex; gap: 10px; margin: 24px 0; }
+        form.add input {
+            flex: 1;
+            padding: 11px 13px;
+            border: 1px solid #c4d0d8;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+        button {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 7px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        button.primary { background: #0b6e4f; color: #fff; }
+        button.primary:hover { background: #095a40; }
+        button.danger { background: #fbe3e3; color: #8a2020; }
+        button.danger:hover { background: #f5cccc; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px 10px; }
+        thead th {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #60707d;
+            border-bottom: 2px solid #dbe3e8;
+        }
+        tbody tr { background: #fff; border-bottom: 1px solid #e8edf0; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-new { background: #e3f0ff; color: #1c5d99; }
+        .badge-done { background: #e2f6ea; color: #18794e; }
+        tr.is-done .task-name { text-decoration: line-through; color: #87949d; }
+        .empty {
+            margin-top: 20px;
+            padding: 22px;
+            background: #fff;
+            border: 1px dashed #c4d0d8;
+            border-radius: 8px;
+            color: #60707d;
+            text-align: center;
+        }
+        .footer { margin-top: 28px; font-size: 13px; color: #87949d; }
+    </style>
+</head>
+<body>
+    <h1>Мой список задач</h1>
+    <p class="subtitle">Практика №6: try / except / rollback / finally</p>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+    {% if note %}
+        <div class="note">{{ note }}</div>
+    {% endif %}
+
+    <form class="add" method="POST" action="{{ url_for('home') }}">
+        <input type="text" name="title" maxlength="200"
+               placeholder="Новая задача..." required autofocus>
+        <button type="submit" class="primary">Добавить</button>
+    </form>
+
+    {% if tasks %}
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:60px">ID</th>
+                    <th>Задача</th>
+                    <th style="width:120px">Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for task in tasks %}
+                <tr class="{% if task.status == 'done' %}is-done{% endif %}">
+                    <td>{{ task.id }}</td>
+                    <td class="task-name">{{ task.title }}</td>
+                    <td>
+                        <span class="badge badge-{{ task.status }}">
+                            {{ 'выполнена' if task.status == 'done' else 'в работе' }}
+                        </span>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">Задач нет.</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('simulate_error') }}" style="margin-top:26px">
+        <button type="submit" class="danger">
+            Проверить обработку ошибки (вставить NULL)
+        </button>
+    </form>
+
+    <p class="footer">
+        Кнопка вызывает нарушение NOT NULL. Сервер вернёт страницу с текстом
+        ошибки, а не трассировку, и откатит транзакцию.
+    </p>
+</body>
+</html>

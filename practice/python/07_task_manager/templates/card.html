@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Задача №{{ task.id }}</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: #eef2f5;
+            color: #1f2933;
+            max-width: 620px;
+            margin: 60px auto;
+            padding: 0 16px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 26px 28px;
+            box-shadow: 0 2px 8px rgba(31, 41, 51, .1);
+        }
+        .num { color: #93a1ab; font-size: 13px; letter-spacing: .06em; }
+        h1 { margin: 8px 0 14px; font-size: 24px; }
+        .status { font-size: 14px; }
+        .pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            background: #e3f0ff;
+            color: #1c5d99;
+        }
+        .pill.done { background: #e2f6ea; color: #18794e; }
+        a.back { display: inline-block; margin-top: 20px; color: #0b6e4f; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="num">ЗАДАЧА #{{ task.id }}</div>
+        <h1>{{ task.title }}</h1>
+        <p class="status">
+            Статус:
+            <span class="pill {% if task.status == 'done' %}done{% endif %}">
+                {{ 'выполнена' if task.status == 'done' else 'в работе' }}
+            </span>
+        </p>
+        <a class="back" href="{{ url_for('home') }}">← вернуться к списку</a>
+    </div>
+</body>
+</html>

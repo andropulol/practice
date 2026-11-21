@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Менеджер задач — практика №7</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: #eef2f5;
+            color: #1f2933;
+            max-width: 820px;
+            margin: 40px auto;
+            padding: 0 16px 40px;
+        }
+        header h1 { margin: 0 0 4px; font-size: 28px; }
+        header p { margin: 0; color: #60707d; }
+
+        .stats { display: flex; gap: 12px; margin: 22px 0; }
+        .stat {
+            flex: 1;
+            background: #fff;
+            border-radius: 10px;
+            padding: 14px 16px;
+            box-shadow: 0 1px 3px rgba(31, 41, 51, .08);
+        }
+        .stat b { display: block; font-size: 24px; }
+        .stat span { font-size: 13px; color: #60707d; }
+
+        .error {
+            background: #fdecec;
+            border-left: 4px solid #d64545;
+            color: #8a2020;
+            padding: 12px 14px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        form.add { display: flex; gap: 10px; margin-bottom: 18px; }
+        form.add input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1px solid #c4d0d8;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #fff;
+        }
+        form.add input:focus { outline: 2px solid #8fc3e8; border-color: transparent; }
+        button {
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .btn-add {
+            padding: 12px 22px;
+            background: #0b6e4f;
+            color: #fff;
+        }
+        .btn-add:hover { background: #095a40; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .tabs a {
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: #fff;
+            color: #3e4c59;
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+        .tabs a.active { background: #0b6e4f; color: #fff; }
+        .tabs a:not(.active):hover { border-color: #c4d0d8; }
+
+        ul.tasks { list-style: none; margin: 0; padding: 0; }
+        li.task {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 13px 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(31, 41, 51, .08);
+        }
+        .task-main { flex: 1; }
+        .task-title { font-size: 15px; }
+        .task-id { color: #93a1ab; font-size: 12px; margin-right: 6px; }
+        .task-date { display: block; font-size: 12px; color: #93a1ab; }
+        li.done .task-title { text-decoration: line-through; color: #87949d; }
+        .pill {
+            font-size: 12px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            background: #e3f0ff;
+            color: #1c5d99;
+        }
+        li.done .pill { background: #e2f6ea; color: #18794e; }
+        .actions { display: flex; gap: 6px; }
+        .actions button {
+            width: 38px;
+            height: 36px;
+            font-size: 16px;
+            background: #f1f4f6;
+        }
+        .actions button:hover { background: #e2e8ec; }
+        .actions .del { background: #fbe3e3; }
+        .actions .del:hover { background: #f5cccc; }
+
+        .empty {
+            background: #fff;
+            border: 1px dashed #c4d0d8;
+            border-radius: 10px;
+            padding: 26px;
+            text-align: center;
+            color: #60707d;
+        }
+        .bottom { margin-top: 22px; display: flex; justify-content: space-between; align-items: center; }
+        .bottom form button {
+            padding: 9px 16px;
+            background: #f1f4f6;
+            color: #3e4c59;
+        }
+        .bottom form button:hover { background: #e2e8ec; }
+        .hint { font-size: 12px; color: #93a1ab; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Менеджер задач</h1>
+    <p>Практика №7: полный CRUD, PRG и защита соединений</p>
+</header>
+
+<div class="stats">
+    <div class="stat"><b>{{ stats.all }}</b><span>всего задач</span></div>
+    <div class="stat"><b>{{ stats.new }}</b><span>в работе</span></div>
+    <div class="stat"><b>{{ stats.done }}</b><span>выполнено</span></div>
+</div>
+
+{% if error %}
+    <div class="error">{{ error }}</div>
+{% endif %}
+
+<form class="add" method="POST" action="{{ url_for('home', view=view) }}">
+    <input type="text" name="title" maxlength="200"
+           placeholder="Новая задача..." required autofocus>
+    <button type="submit" class="btn-add">Добавить</button>
+</form>
+
+<nav class="tabs">
+    <a href="{{ url_for('home', view='all') }}"
+       class="{{ 'active' if view == 'all' else '' }}">Все</a>
+    <a href="{{ url_for('home', view='active') }}"
+       class="{{ 'active' if view == 'active' else '' }}">В работе</a>
+    <a href="{{ url_for('home', view='done') }}"
+       class="{{ 'active' if view == 'done' else '' }}">Выполненные</a>
+</nav>
+
+{% if tasks %}
+    <ul class="tasks">
+    {% for task in tasks %}
+        <li class="task {% if task.status == 'done' %}done{% endif %}">
+            <div class="task-main">
+                <div class="task-title">
+                    <span class="task-id">#{{ task.id }}</span>{{ task.title }}
+                </div>
+                <a class="task-date" href="{{ url_for('task_card', task_id=task.id) }}">
+                    открыть карточку
+                </a>
+            </div>
+            <span class="pill">{{ 'готово' if task.status == 'done' else 'в работе' }}</span>
+            <div class="actions">
+                <form method="POST"
+                      action="{{ url_for('toggle_done', task_id=task.id, view=view) }}">
+                    <button type="submit" title="Переключить статус">
+                        {{ '↩' if task.status == 'done' else '✓' }}
+                    </button>
+                </form>
+                <form method="POST"
+                      action="{{ url_for('delete_one', task_id=task.id, view=view) }}"
+                      onsubmit="return confirm('Удалить задачу №{{ task.id }}?');">
+                    <button type="submit" class="del" title="Удалить">🗑</button>
+                </form>
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <div class="empty">
+        {% if view == 'done' %}
+            Выполненных задач пока нет.
+        {% elif view == 'active' %}
+            Все задачи уже выполнены.
+        {% else %}
+            Список пуст — добавьте первую задачу.
+        {% endif %}
+    </div>
+{% endif %}
+
+<div class="bottom">
+    <span class="hint">Данные хранятся в файле app.db</span>
+    {% if stats.done %}
+        <form method="POST" action="{{ url_for('clear_completed', view=view) }}"
+              onsubmit="return confirm('Удалить все выполненные задачи?');">
+            <button type="submit">Очистить выполненные</button>
+        </form>
+    {% endif %}
+</div>
+</body>
+</html>
